@@ -334,7 +334,7 @@ class ActorProductions {
 		//Loop through each production. 
 		foreach($productions as $production){
 			//Populate all necessary fields.
-			$production_data = self::populate_data($production->ID);
+			$production_data = self::populate_data($production);
 			
 			//Put in array under the appropriate variable.
 			if(self::is_current($production_data)){
@@ -353,7 +353,12 @@ class ActorProductions {
 				
 	}
 	
-	private static function populate_data($id){
+	private static function populate_data($post_object){
+		$id = $post_object->ID;
+		
+		//Apply filters to post content
+		$post_object->post_content = apply_filters('the_content',$post_object->post_content);
+		
 		//Get all normal meta fields
 		$normal_custom_data = get_post_custom($id);
 		//pair down data to the essentials
@@ -366,18 +371,19 @@ class ActorProductions {
 		foreach($important_keys as $important_key){
 			$normal_essential_data[$important_key] = $normal_custom_data[$important_key][0];
 		}
-
+		
 		//Get all REGULAR taxonomy data
 		$taxonomy_data = self::taxonomy_data($id);
 		
 		//Get all Simple Fields meta fields
 		$simple_fields_data = simple_fields_get_post_group_values($id, "Production Dates and Venues", true, 2);
 		
-		//combine into one set of data
+		//combine into one set of data and also add post object
 		$all_data = array(
 			'essential_data' => $normal_essential_data
 			,'taxonomy_data' => $taxonomy_data
 			,'simple_fields_data' => $simple_fields_data
+			,'post_data' => $post_object
 		);
 		
 		//Make inferences based on the different data sets
@@ -410,13 +416,13 @@ class ActorProductions {
 	
 	private static function taxonomy_data($id){
 		//Get regular values
-		$venues = get_the_terms($id, 'venue');
+		//$venues = get_the_terms($id, 'venue');
 		$company = get_the_terms($id, 'production_company');
 		
 		//foreach: add custom values
 		
 		//return single array
-		$taxonomy_data = array('venue' => $venues, 'company' => $company);
+		$taxonomy_data = array(/* 'venue' => $venues, */ 'company' => $company);
 		return $taxonomy_data;
 	}
 	
@@ -483,7 +489,7 @@ class ActorProduction {
 	public $company;
 	
 	//Things that need loops
-	public $venue;
+	public $venues;
 	
 	
 	public function __construct($AParray, $id){
@@ -508,8 +514,8 @@ class ActorProduction {
 		}
 		
 		$this->simple_fields_populate();
-		$this->venue = $this->additional_taxonomy_data(current($this->venue));
-		$this->company = $this->additional_taxonomy_data(current($this->company));
+		//$this->venue = $this->additional_taxonomy_data(current($this->venue));
+		$this->company = $this->company ? $this->additional_taxonomy_data(current($this->company)) : null;
 	}
 	
 	private function simple_fields_populate(){
@@ -632,20 +638,23 @@ class Productions_Widget extends WP_Widget {
 	public function widget( $args, $instance ) {
 		extract( $args );
 		//$title = apply_filters( 'widget_title', $instance['title'] );
-		//echo '<div style="background-color:#ccc; position:absolute; top:0; left:0; right:0; padding:8em">';
+		//if (is_page()) echo '<div style="background-color:#ccc; position:absolute; top:0; left:0; right:0; padding:8em">';//testing
 		$productions_data = new ActorProductions;
 		
 		echo $before_widget;
 		
+		//Current and Upcoming productions ought to show the same information. Ne need to write it all out twice
+		$current_and_upcoming = array('current', 'upcoming');
 		
-		if ($productions_data->have_productions('current')): 
-			echo $before_title . 'Currently' . $after_title;
-			while ($productions_data->have_productions('current')): 
-				echo '<ul class="current-productions">';
+		foreach ($current_and_upcoming as $relevance):
+		if ($productions_data->have_productions($relevance)): 
+			echo $before_title . $relevance . $after_title;
+			while ($productions_data->have_productions($relevance)): 
+				echo "<ul class='$relevance-productions productions'>";
 				
-				$productions_data->the_production('current');
+				$productions_data->the_production($relevance);
 				global $hc_production;
-				//ddprint($hc_production);
+				//if (is_page()) ddprint($hc_production); //testing
 				?>
 				<li class="production-info">
 					<?php if($hc_production->company != ''){
@@ -655,6 +664,10 @@ class Productions_Widget extends WP_Widget {
 					<?php if(has_post_thumbnail($hc_production->ID)){?>
 						<img src="<?php $hc_production->featured_image_url('medium'); ?>"/>
 					<?php } ?>
+					<div class="post-content">
+						<div class="full-article"><?php echo $hc_production->post_data->post_content; ?></div>
+						<div class="excerpt"><?php echo $hc_production->post_data->post_excerpt; ?></div>
+					</div>
 					
 					<ul class="venues">
 					<?php $hc_production->format_dates('D, M jS');?>
@@ -696,20 +709,88 @@ class Productions_Widget extends WP_Widget {
 								if($venue->closing) echo "<li class='closing'>Closing is <span>$venue->closing</span></li>";
 								?>
 							</ul>
+							<ul class="links">
+								<?php
+									if ($hc_production->tickets_url) echo "<li><a href='http://{$hc_production->tickets_url}>Get Tickets</a></li>";
+									if ($hc_production->production_url) echo "<li><a href='http://{$hc_production->production_url}>More Information</a></li>";
+								?>
+							</ul><!--links-->
 						</li><!--venue-info-->
 					<?php endforeach; ?>
 					</ul><!--venues-->
 				</li><!--production-info-->
 				<?
 				//ddprint($production);
-			endwhile; echo '</ul><!--current-productions-->';
+			endwhile; echo "</ul><!--{$relevance}-productions-->";
 		endif;
+		endforeach;
 		
-		echo $before_title . 'Upcoming' . $after_title;
-		echo $before_title . 'Past Productions' . $after_title;
+		//Now for past shows
+		if ($productions_data->have_productions('past')): 
+			echo $before_title . 'past productions' . $after_title;
+			while ($productions_data->have_productions('past')): 
+				echo "<ul class='past-productions productions'>";
+				
+				$productions_data->the_production('past');
+				global $hc_production;
+				//if (is_page()) ddprint($hc_production); //testing
+				?>
+				<li class="production-info">
+					<h4 class="production-title"><a href="<?php echo post_permalink($hc_production->ID); ?>"><?php $hc_production->the_title(); ?></a></h4>
+					<?php if(has_post_thumbnail($hc_production->ID)){?>
+						<img src="<?php $hc_production->featured_image_url('medium'); ?>"/>
+					<?php } ?>
+					
+					<ul class="venues">
+					<?php $hc_production->format_dates('F Y');?>
+					<?php foreach ($hc_production->venues as $venue):?>
+						<li class="venue-info">
+							<h5 class="venue-name">
+								<?php if($venue->website != '') {
+									echo "<a href='http://{$venue->website}'>$venue->name</a>";
+								}else{
+									echo "$venue->name";
+								}?>
+							</h5>
+							<?php if ($venue->city != ''){ ?>
+								<?php
+									$query = array(
+										$venue->name,
+										$venue->street_address,
+										$venue->city,
+										$venue->state,
+										$venue->country
+									);
+									foreach ($query as $key => $data){
+										if($data=='') unset($query[$key]);
+									}
+									$query = implode(',+', $query);
+								?>
+								<div class="location">
+									<a href="http://maps.google.com/maps?q=<?php echo $query;?>" target="_blank">
+										<span class="city"><?php echo $venue->city; ?>,</span>
+										<span class="state"><?php echo $venue->state; ?></span>
+										<span class="country"><?php echo $venue->country; ?></span>
+									</a>
+								</div>
+							<?php } ?>
+							<ul class="dates">
+								<?php
+								if($venue->opening) echo "<li class='opening'><span>$venue->opening</span></li>";
+								?>
+							</ul>
+						</li><!--venue-info-->
+					<?php endforeach; ?>
+					</ul><!--venues-->
+				</li><!--production-info-->
+				<?
+				//ddprint($production);
+			endwhile; echo '</ul><!--past-productions-->';
+		endif;
+
 		
 		echo $after_widget;
-		//echo '</div>';
+		//if (is_page()) echo '</div>'; //testing
 	}
 
 	/**

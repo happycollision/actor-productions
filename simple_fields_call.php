@@ -216,12 +216,13 @@ simple_fields_register_post_connector('production_connector',
 simple_fields_register_post_type_default('production_connector', 'productions');
 
 
-//Hide connector box in admin.
+//Hide connector box and venues box in admin.
 add_action('admin_head','hide_simple_fields_connector_meta_box');
 function hide_simple_fields_connector_meta_box(){
 	echo "
 	<style>
-	#simple-fields-post-edit-side-field-settings {
+	#simple-fields-post-edit-side-field-settings,
+	#tagsdiv-venue {
 		display: none;
 	}
 	</style>
