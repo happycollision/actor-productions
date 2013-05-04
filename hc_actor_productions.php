@@ -649,76 +649,78 @@ class Productions_Widget extends WP_Widget {
 		foreach ($current_and_upcoming as $relevance):
 		if ($productions_data->have_productions($relevance)): 
 			echo $before_title . $relevance . $after_title;
+			echo "<ul class='$relevance-productions productions'>";
 			while ($productions_data->have_productions($relevance)): 
-				echo "<ul class='$relevance-productions productions'>";
 				
 				$productions_data->the_production($relevance);
 				global $hc_production;
 				//if (is_page()) ddprint($hc_production); //testing
 				?>
-				<li class="production-info">
+				<li class="production">
 					<?php if($hc_production->company != ''){
 						echo "<div class='production-company'>{$hc_production->company->name} presents</div>";
 					}?>
 					<h4 class="production-title"><a href="<?php echo post_permalink($hc_production->ID); ?>"><?php $hc_production->the_title(); ?></a></h4>
-					<?php if(has_post_thumbnail($hc_production->ID)){?>
-						<img src="<?php $hc_production->featured_image_url('medium'); ?>"/>
-					<?php } ?>
-					<div class="post-content">
-						<div class="full-article"><?php echo $hc_production->post_data->post_content; ?></div>
-						<div class="excerpt"><?php echo $hc_production->post_data->post_excerpt; ?></div>
-					</div>
-					
-					<ul class="venues">
-					<?php $hc_production->format_dates('D, M jS');?>
-					<?php foreach ($hc_production->venues as $venue):?>
-						<li class="venue-info">
-							<h5 class="venue-name">
-								<?php if($venue->website != '') {
-									echo "<a href='http://{$venue->website}'>$venue->name</a>";
-								}else{
-									echo "$venue->name";
-								}?>
-							</h5>
-							<?php if ($venue->city != ''){ ?>
-								<?php
-									$query = array(
-										$venue->name,
-										$venue->street_address,
-										$venue->city,
-										$venue->state,
-										$venue->country
-									);
-									foreach ($query as $key => $data){
-										if($data=='') unset($query[$key]);
-									}
-									$query = implode(',+', $query);
-								?>
-								<div class="location">
-									<a href="http://maps.google.com/maps?q=<?php echo $query;?>" target="_blank">
-										<span class="city"><?php echo $venue->city; ?>,</span>
-										<span class="state"><?php echo $venue->state; ?></span>
-										<span class="country"><?php echo $venue->country; ?></span>
-									</a>
-								</div>
-							<?php } ?>
-							<ul class="dates">
-								<?php
-								if($venue->preview) echo "<li class='previews'>Previews begin <span>$venue->preview</span></li>";
-								if($venue->opening) echo "<li class='opening'>Opening is <span>$venue->opening</span></li>";
-								if($venue->closing) echo "<li class='closing'>Closing is <span>$venue->closing</span></li>";
-								?>
-							</ul>
-							<ul class="links">
-								<?php
-									if ($hc_production->tickets_url) echo "<li><a href='http://{$hc_production->tickets_url}>Get Tickets</a></li>";
-									if ($hc_production->production_url) echo "<li><a href='http://{$hc_production->production_url}>More Information</a></li>";
-								?>
-							</ul><!--links-->
-						</li><!--venue-info-->
-					<?php endforeach; ?>
-					</ul><!--venues-->
-				</li><!--production-info-->
+					<div class="production-info">
+						<?php if(has_post_thumbnail($hc_production->ID)){?>
+							<img src="<?php $hc_production->featured_image_url('medium'); ?>"/>
+						<?php } ?>
+						<div class="post-content">
+							<div class="full-article"><?php echo $hc_production->post_data->post_content; ?></div>
+							<div class="excerpt"><?php echo $hc_production->post_data->post_excerpt; ?></div>
+						</div>
+						
+						<ul class="venues">
+						<?php $hc_production->format_dates('D, M jS');?>
+						<?php foreach ($hc_production->venues as $venue):?>
+							<li class="venue-info">
+								<h5 class="venue-name">
+									<?php if($venue->website != '') {
+										echo "<a href='http://{$venue->website}'>$venue->name</a>";
+									}else{
+										echo "$venue->name";
+									}?>
+								</h5>
+								<?php if ($venue->city != ''){ ?>
+									<?php
+										$query = array(
+											$venue->name,
+											$venue->street_address,
+											$venue->city,
+											$venue->state,
+											$venue->country
+										);
+										foreach ($query as $key => $data){
+											if($data=='') unset($query[$key]);
+										}
+										$query = implode(',+', $query);
+									?>
+									<div class="location">
+										<a href="http://maps.google.com/maps?q=<?php echo $query;?>" target="_blank">
+											<span class="city"><?php echo $venue->city; ?>,</span>
+											<span class="state"><?php echo $venue->state; ?></span>
+											<span class="country"><?php echo $venue->country; ?></span>
+										</a>
+									</div>
+								<?php } ?>
+								<ul class="dates">
+									<?php
+									if($venue->preview) echo "<li class='previews'>Previews begin <span>$venue->preview</span></li>";
+									if($venue->opening) echo "<li class='opening'>Opening is <span>$venue->opening</span></li>";
+									if($venue->closing) echo "<li class='closing'>Closing is <span>$venue->closing</span></li>";
+									?>
+								</ul>
+								<ul class="links">
+									<?php
+										if ($hc_production->tickets_url) echo "<li><a href='http://{$hc_production->tickets_url}>Get Tickets</a></li>";
+										if ($hc_production->production_url) echo "<li><a href='http://{$hc_production->production_url}>More Information</a></li>";
+									?>
+								</ul><!--links-->
+							</li><!--venue-info-->
+						<?php endforeach; ?>
+						</ul><!--venues-->
+					</div><!--production-info-->
+				</li><!--production-->
 				<?
 				//ddprint($production);
 			endwhile; echo "</ul><!--{$relevance}-productions-->";
@@ -728,61 +730,63 @@ class Productions_Widget extends WP_Widget {
 		//Now for past shows
 		if ($productions_data->have_productions('past')): 
 			echo $before_title . 'past productions' . $after_title;
+			echo "<ul class='past-productions productions'>";
 			while ($productions_data->have_productions('past')): 
-				echo "<ul class='past-productions productions'>";
 				
 				$productions_data->the_production('past');
 				global $hc_production;
 				//if (is_page()) ddprint($hc_production); //testing
 				?>
-				<li class="production-info">
+				<li class="production">
 					<h4 class="production-title"><a href="<?php echo post_permalink($hc_production->ID); ?>"><?php $hc_production->the_title(); ?></a></h4>
-					<?php if(has_post_thumbnail($hc_production->ID)){?>
-						<img src="<?php $hc_production->featured_image_url('medium'); ?>"/>
-					<?php } ?>
-					
-					<ul class="venues">
-					<?php $hc_production->format_dates('F Y');?>
-					<?php foreach ($hc_production->venues as $venue):?>
-						<li class="venue-info">
-							<h5 class="venue-name">
-								<?php if($venue->website != '') {
-									echo "<a href='http://{$venue->website}'>$venue->name</a>";
-								}else{
-									echo "$venue->name";
-								}?>
-							</h5>
-							<?php if ($venue->city != ''){ ?>
-								<?php
-									$query = array(
-										$venue->name,
-										$venue->street_address,
-										$venue->city,
-										$venue->state,
-										$venue->country
-									);
-									foreach ($query as $key => $data){
-										if($data=='') unset($query[$key]);
-									}
-									$query = implode(',+', $query);
-								?>
-								<div class="location">
-									<a href="http://maps.google.com/maps?q=<?php echo $query;?>" target="_blank">
-										<span class="city"><?php echo $venue->city; ?>,</span>
-										<span class="state"><?php echo $venue->state; ?></span>
-										<span class="country"><?php echo $venue->country; ?></span>
-									</a>
-								</div>
-							<?php } ?>
-							<ul class="dates">
-								<?php
-								if($venue->opening) echo "<li class='opening'><span>$venue->opening</span></li>";
-								?>
-							</ul>
-						</li><!--venue-info-->
-					<?php endforeach; ?>
-					</ul><!--venues-->
-				</li><!--production-info-->
+					<div class="production-info">
+						<?php if(has_post_thumbnail($hc_production->ID)){?>
+							<img src="<?php $hc_production->featured_image_url('medium'); ?>"/>
+						<?php } ?>
+						
+						<ul class="venues">
+						<?php $hc_production->format_dates('F Y');?>
+						<?php foreach ($hc_production->venues as $venue):?>
+							<li class="venue-info">
+								<h5 class="venue-name">
+									<?php if($venue->website != '') {
+										echo "<a href='http://{$venue->website}'>$venue->name</a>";
+									}else{
+										echo "$venue->name";
+									}?>
+								</h5>
+								<?php if ($venue->city != ''){ ?>
+									<?php
+										$query = array(
+											$venue->name,
+											$venue->street_address,
+											$venue->city,
+											$venue->state,
+											$venue->country
+										);
+										foreach ($query as $key => $data){
+											if($data=='') unset($query[$key]);
+										}
+										$query = implode(',+', $query);
+									?>
+									<div class="location">
+										<a href="http://maps.google.com/maps?q=<?php echo $query;?>" target="_blank">
+											<span class="city"><?php echo $venue->city; ?>,</span>
+											<span class="state"><?php echo $venue->state; ?></span>
+											<span class="country"><?php echo $venue->country; ?></span>
+										</a>
+									</div>
+								<?php } ?>
+								<ul class="dates">
+									<?php
+									if($venue->opening) echo "<li class='opening'><span>$venue->opening</span></li>";
+									?>
+								</ul>
+							</li><!--venue-info-->
+						<?php endforeach; ?>
+						</ul><!--venues-->
+					</div><!--production-info-->
+				</li><!--production-->
 				<?
 				//ddprint($production);
 			endwhile; echo '</ul><!--past-productions-->';
