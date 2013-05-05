@@ -731,7 +731,9 @@ class Productions_Widget extends WP_Widget {
 		if ($productions_data->have_productions('past')): 
 			echo $before_title . 'past productions' . $after_title;
 			echo "<ul class='past-productions productions'>";
-			while ($productions_data->have_productions('past')): 
+			
+			$i = 0;
+			while ($productions_data->have_productions('past') && ++$i <= $instance['past_num']): 
 				
 				$productions_data->the_production('past');
 				global $hc_production;
