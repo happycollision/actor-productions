@@ -666,8 +666,8 @@ class Productions_Widget extends WP_Widget {
 							<img src="<?php $hc_production->featured_image_url('medium'); ?>"/>
 						<?php } ?>
 						<div class="post-content">
-							<div class="full-article"><?php echo $hc_production->post_data->post_content; ?></div>
 							<div class="excerpt"><?php echo $hc_production->post_data->post_excerpt; ?></div>
+							<div class="full-article"><?php echo $hc_production->post_data->post_content; ?></div>
 						</div>
 						
 						<ul class="venues">
