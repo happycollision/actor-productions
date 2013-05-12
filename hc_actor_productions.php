@@ -8,6 +8,7 @@ Author URI: http://happycollision.com
 Depends: Simple Fields
 */
 
+if(function_exists('simple_fields_register_field_group')):
 add_action('init', 'production_init');
 function production_init() 
 {
@@ -857,3 +858,5 @@ class Productions_Widget extends WP_Widget {
 
 // register Foo_Widget widget
 add_action( 'widgets_init', create_function( '', 'register_widget( "productions_widget" );' ) );
+
+endif;
